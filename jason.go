@@ -109,6 +109,18 @@ func (v *Object) Map() map[string]*Value {
 // Useful for parsing the body of a net/http response.
 // Example: NewFromReader(res.Body)
 func NewValueFromReader(reader io.Reader) (*Value, error) {
+	j, err := newValueFromReader(reader)
+	switch j.Interface().(type) {
+	case map[string]interface{}:
+		j.data, err = objectFromValue(j, err)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return j, nil
+}
+
+func newValueFromReader(reader io.Reader) (*Value, error) {
 	j := new(Value)
 	d := json.NewDecoder(reader)
 	d.UseNumber()
@@ -116,6 +128,7 @@ func NewValueFromReader(reader io.Reader) (*Value, error) {
 	return j, err
 }
 
+// Duplicated
 // Creates a new value from bytes.
 // Returns an error if the bytes are not valid json.
 func NewValueFromBytes(b []byte) (*Value, error) {
@@ -138,11 +151,11 @@ func objectFromValue(v *Value, err error) (*Object, error) {
 }
 
 func NewObjectFromBytes(b []byte) (*Object, error) {
-	return objectFromValue(NewValueFromBytes(b))
+	return objectFromValue(newValueFromReader(bytes.NewReader(b)))
 }
 
 func NewObjectFromReader(reader io.Reader) (*Object, error) {
-	return objectFromValue(NewValueFromReader(reader))
+	return objectFromValue(newValueFromReader(reader))
 }
 
 // Marshal into bytes.

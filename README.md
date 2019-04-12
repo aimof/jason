@@ -54,7 +54,7 @@ v, err := jason.NewObjectFromBytes(b)
 
 ```
 
-If the root object is unknown or not an object, use `NewValueFromBytes` instead. It can then be typecasted using one of the conversion methods provided by the library, for instance `Array()` or `String()`.
+If the root object is unknown or not an object, use `NewValueFromBytes` instead. It can then be typecasted using one of the conversion methods provided by the library, for instance `Array()` or `String()`. You can read object as `NewValueFromReader`.
 
 ```go
 v, err := jason.NewValueFromBytes(b)
