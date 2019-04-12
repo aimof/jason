@@ -81,7 +81,8 @@ func (k KeyNotFoundError) Error() string {
 // It may contain a bool, number, string, object, array or null.
 type Value struct {
 	data   interface{}
-	exists bool // Used to separate nil and non-existing values
+	exists bool  // Used to separate nil and non-existing values
+	err    error // True when the value is invalid.
 }
 
 // Object represents an object JSON object.
@@ -93,6 +94,11 @@ type Object struct {
 	valid bool
 }
 
+type Array struct {
+	Value
+	s []*Value
+}
+
 // Marshal into bytes.
 func (v *Object) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.m)
@@ -102,6 +108,72 @@ func (v *Object) MarshalJSON() ([]byte, error) {
 // Needed when iterating through the values of the object.
 func (v *Object) Map() map[string]*Value {
 	return v.m
+}
+
+func NewValue(reader io.Reader) (*Value, error) {
+	v, err := newValueFromReader(reader)
+	if err != nil {
+		return nil, err
+	}
+
+	return v, nil
+}
+
+func dataToObject(src *Value) (dist *Value) {
+	switch src.data.(type) {
+	case map[string]interface{}:
+		dist := new(Object)
+		for key, v := range src.data.(map[string]interface{}) {
+			if v == nil {
+				dist.m[key] = &Value{data: nil, exists: false}
+			}
+			switch v.(type) {
+			case map[string]interface{}:
+				dist.data.(map[string]interface{})[key] = &Value{data: dataToObject(&Value{data: v})}
+			default:
+				dist.data = &Value{data: v}
+			}
+		}
+	case []interface{}:
+		dist := make([]*Value, len(src.data.([]interface{})))
+		for i, v := range src.data.([]interface{}) {
+			dist[i].data = &Value{data: dataToObject(&Value{data: v})}
+		}
+	}
+	return dist
+}
+
+func (parent *Value) Get(i interface{}) *Value {
+	if parent == nil {
+		return &Value{
+			err: fmt.Errorf("Get %v: parent is nil", i),
+		}
+	}
+	if parent.err != nil {
+		return &*parent
+	}
+	switch i.(type) {
+	case string:
+		switch parent.Interface().(type) {
+		case map[string]interface{}:
+			child, ok := parent.Interface().(map[string]interface{})[i.(string)]
+			if !ok {
+				return &Value{err: fmt.Errorf("Get: %v is not in keys", i)}
+			}
+			return &Value{data: child}
+		default:
+			parent.err = fmt.Errorf("Get %v: parent is not an object", i)
+		}
+	case int:
+		switch parent.Interface().(type) {
+		case []interface{}:
+			if i.(int) < len(parent.Interface().([]interface{})) {
+				return &Value{data: parent.Interface().([]interface{})[i.(int)]}
+			}
+			return &Value{err: fmt.Errorf("Get %v: Index out of range", i)}
+		}
+	}
+	return &Value{err: fmt.Errorf("Get: %v is invalid", i)}
 }
 
 // Creates a new value from an io.reader.
@@ -656,7 +728,7 @@ func (v *Value) Array() ([]*Value, error) {
 	if valid {
 
 		for _, element := range v.data.([]interface{}) {
-			child := Value{element, true}
+			child := Value{data: element, exists: true}
 			slice = append(slice, &child)
 		}
 
@@ -760,7 +832,7 @@ func (v *Value) Object() (*Object, error) {
 
 		if valid {
 			for key, element := range v.data.(map[string]interface{}) {
-				m[key] = &Value{element, true}
+				m[key] = &Value{data: element, exists: true}
 
 			}
 		}
@@ -795,7 +867,7 @@ func (v *Value) ObjectArray() ([]*Object, error) {
 	if valid {
 
 		for _, element := range v.data.([]interface{}) {
-			childValue := Value{element, true}
+			childValue := Value{data: element, exists: true}
 			childObject, err := childValue.Object()
 
 			if err != nil {

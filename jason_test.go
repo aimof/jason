@@ -2,8 +2,10 @@ package jason
 
 import (
 	"bytes"
+	"encoding/json"
 	"log"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -11,6 +13,59 @@ import (
 // I don't want to use Assert and True.
 // So, new test doesn't use assert.
 // ---
+
+func TestNewValueRecursiveFromReader(t *testing.T) {
+	j = `{
+		"Foo": {
+			"Bar": {
+				"Fizz":[
+					"Buzz"
+				]
+			}
+		},
+		"Bar": [
+			{
+				"Foo": "Bar"
+			},
+			3,
+			"Fizz"
+		]
+	}`
+
+	values, err := NewValue(strings.NewReader(j))
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	v := values.Get("Foo").Get("Bar").Get("Fizz").Get(0)
+	if v == nil {
+		t.Error()
+		return
+	}
+	if v.err != nil {
+		t.Error(v.err)
+		return
+	}
+	switch v.Interface().(type) {
+	case string:
+		if v.Interface().(string) != "Buzz" {
+			t.Error(v)
+		}
+	default:
+		t.Error(reflect.TypeOf(v.Interface()))
+	}
+	v = values.Get("Bar").Get(1)
+	switch v.Interface().(type) {
+	case json.Number:
+		if num, err := v.Interface().(json.Number).Int64(); err != nil {
+			t.Error()
+		} else if num != 3 {
+			t.Error()
+		}
+	default:
+		t.Error(reflect.TypeOf(v.Interface()))
+	}
+}
 
 func TestNewValueWithObject(t *testing.T) {
 	jsonValues := make([]*Value, 0, 2)
