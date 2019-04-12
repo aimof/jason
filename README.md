@@ -2,9 +2,39 @@ This Repo is maintained by aimof because the original repo is not maintained res
 I use jason in [github.com/aimof/apitest](https://github.com/aimof/apitest).
 
 Go version: ^1.12.2
-Original HEAD is 426ade25b261bcb4a7ad58c65badfc731854e92b .
+Original HEAD is 426ade25b261bcb4a7ad58c65badfc731854e92b
 
 [![Build Status](https://travis-ci.org/aimof/jason.svg?branch=master)](https://travis-ci.org/aimof/jason)
+
+# New Jason by aimof
+
+* Perfect Compatibility!!
+* Highly nested support!!
+
+## How to use new jason.
+
+```go
+reader // your json reader.
+// if you want to read []byte or string please use bytes.NewReader() or strings.NewReader().
+
+// Create Value from reader
+rootValue, err := NewValue(reader)
+
+// If you want to use nested json.
+v := rootValue.Get("Foo").Get(2).Get("Bar")
+// Get(string): Object
+// Get(int): Array
+
+// Now, Value type has err in its own.
+if v.err != nil {
+  // handle error
+}
+
+// If you want to use v as Object.
+o, err := v.Object()
+```
+
+
 
 ---
 
@@ -28,7 +58,7 @@ go get github.com/antonholmquist/jason
 
 ```go
 import (
-  "github.com/antonholmquist/jason"
+  "github.com/aimof/jason"
 )
 ```
 
@@ -128,7 +158,7 @@ Example project:
 package main
 
 import (
-  "github.com/antonholmquist/jason"
+  "github.com/aimof/jason"
   "log"
 )
 
