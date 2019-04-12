@@ -1,9 +1,46 @@
 package jason
 
 import (
+	"bytes"
 	"log"
+	"reflect"
 	"testing"
 )
+
+// ---
+// I don't want to use Assert and True.
+// So, new test doesn't use assert.
+// ---
+
+func TestNewValueWithObject(t *testing.T) {
+	jsonValues := make([]*Value, 0, 2)
+
+	jsonBytesObjects := []byte(`{"Hello": "world!"}`)
+	j, err := NewValueFromBytes(jsonBytesObjects)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	jsonValues = append(jsonValues, j)
+
+	j, err = NewValueFromReader(bytes.NewReader(jsonBytesObjects))
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	jsonValues = append(jsonValues, j)
+
+	for _, v := range jsonValues {
+		switch v.Interface().(type) {
+		case *Object:
+		default:
+			t.Error("The value is not a object.")
+			t.Log(reflect.TypeOf(v.Interface()))
+		}
+	}
+}
+
+// --- old test ---
 
 type Assert struct {
 	T *testing.T
@@ -55,6 +92,10 @@ func TestFirst(t *testing.T) {
   }`
 
 	j, err := NewObjectFromBytes([]byte(testJSON))
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	a, err := j.GetObject("address")
 	assert.True(a != nil && err == nil, "failed to create json from string")
@@ -203,6 +244,11 @@ func TestSecond(t *testing.T) {
 
 	assert := NewAssert(t)
 	j, err := NewObjectFromBytes([]byte(json))
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	assert.True(j != nil && err == nil, "failed to parse json")
 
