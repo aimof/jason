@@ -1,3 +1,15 @@
+This Repo is maintained by aimof because the original repo is not maintained resently.
+I use jason in [github.com/aimof/apitest](https://github.com/aimof/apitest).
+
+Go version: ^1.12.2
+Original HEAD is 426ade25b261bcb4a7ad58c65badfc731854e92b .
+
+---
+
+If you want to read original README,  please see below.
+
+---
+
 Jason is an easy-to-use JSON library for Go.
 
 [![Build Status](https://img.shields.io/travis/antonholmquist/jason.svg?style=flat)](https://travis-ci.org/antonholmquist/jason) [![Godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/antonholmquist/jason) [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/antonholmquist/jason/master/LICENSE)
