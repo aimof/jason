@@ -52,6 +52,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"reflect"
 )
 
 // Error values returned when validation functions fail
@@ -174,6 +175,15 @@ func (parent *Value) Get(i interface{}) *Value {
 		}
 	}
 	return &Value{err: fmt.Errorf("Get: %v is invalid", i)}
+}
+
+func (parent *Value) GetAll() (map[string]*Value, error) {
+	switch parent.data.(type) {
+	case map[string]*Value:
+	default:
+		return nil, fmt.Errorf("GetAll: value is not an object, type: %v", reflect.TypeOf(parent.data))
+	}
+	return parent.data.(map[string]*Value), nil
 }
 
 // Creates a new value from an io.reader.

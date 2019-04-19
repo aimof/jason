@@ -67,6 +67,51 @@ func TestNewValueRecursiveFromReader(t *testing.T) {
 	}
 }
 
+func TestGetAll(t *testing.T) {
+	j = `{
+		"Foo": null,
+		"Bar": 4.5,
+		"Fizz": "Buzz"
+	}`
+
+	v, err := NewValue(strings.NewReader(j))
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	got, err := v.GetAll()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if len(got) != 3 {
+		t.Error()
+	}
+	for key, value := range got {
+		switch key {
+		case "Foo":
+			if err := value.Null(); err != nil {
+				t.Error()
+			}
+		case "Bar":
+			if num, err := value.Float64(); err != nil {
+				t.Error()
+			} else if num != 4.5 {
+				t.Error()
+			}
+		case "Fizz":
+			if str, err := value.String(); err != nil {
+				t.Error()
+			} else if str != "Buzz" {
+				t.Error()
+			}
+		default:
+			t.Error()
+		}
+	}
+}
+
 func TestNewValueWithObject(t *testing.T) {
 	jsonValues := make([]*Value, 0, 2)
 
