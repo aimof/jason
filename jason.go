@@ -82,7 +82,7 @@ func (k KeyNotFoundError) Error() string {
 type Value struct {
 	data   interface{}
 	exists bool  // Used to separate nil and non-existing values
-	err    error // True when the value is invalid.
+	Err    error // True when the value is invalid.
 }
 
 // Object represents an object JSON object.
@@ -146,10 +146,10 @@ func dataToObject(src *Value) (dist *Value) {
 func (parent *Value) Get(i interface{}) *Value {
 	if parent == nil {
 		return &Value{
-			err: fmt.Errorf("Get %v: parent is nil", i),
+			Err: fmt.Errorf("Get %v: parent is nil", i),
 		}
 	}
-	if parent.err != nil {
+	if parent.Err != nil {
 		return &*parent
 	}
 	switch i.(type) {
@@ -158,11 +158,11 @@ func (parent *Value) Get(i interface{}) *Value {
 		case map[string]interface{}:
 			child, ok := parent.Interface().(map[string]interface{})[i.(string)]
 			if !ok {
-				return &Value{err: fmt.Errorf("Get: %v is not in keys", i)}
+				return &Value{Err: fmt.Errorf("Get: %v is not in keys", i)}
 			}
 			return &Value{data: child}
 		default:
-			parent.err = fmt.Errorf("Get %v: parent is not an object", i)
+			parent.Err = fmt.Errorf("Get %v: parent is not an object", i)
 		}
 	case int:
 		switch parent.Interface().(type) {
@@ -170,10 +170,10 @@ func (parent *Value) Get(i interface{}) *Value {
 			if i.(int) < len(parent.Interface().([]interface{})) {
 				return &Value{data: parent.Interface().([]interface{})[i.(int)]}
 			}
-			return &Value{err: fmt.Errorf("Get %v: Index out of range", i)}
+			return &Value{Err: fmt.Errorf("Get %v: Index out of range", i)}
 		}
 	}
-	return &Value{err: fmt.Errorf("Get: %v is invalid", i)}
+	return &Value{Err: fmt.Errorf("Get: %v is invalid", i)}
 }
 
 // Creates a new value from an io.reader.

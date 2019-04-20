@@ -42,8 +42,8 @@ func TestNewValueRecursiveFromReader(t *testing.T) {
 		t.Error()
 		return
 	}
-	if v.err != nil {
-		t.Error(v.err)
+	if v.Err != nil {
+		t.Error(v.Err)
 		return
 	}
 	switch v.Interface().(type) {
