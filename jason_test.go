@@ -91,7 +91,7 @@ func TestGetAll(t *testing.T) {
 	for key, value := range got {
 		switch key {
 		case "Foo":
-			if err := value.Null(); err != nil {
+			if err := value.Null(); err == nil {
 				t.Error()
 			}
 		case "Bar":

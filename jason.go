@@ -161,7 +161,10 @@ func (parent *Value) Get(i interface{}) *Value {
 			if !ok {
 				return &Value{err: fmt.Errorf("Get: %v is not in keys", i)}
 			}
-			return &Value{data: child}
+			if child == nil {
+				return &Value{data: nil, exists: false}
+			}
+			return &Value{data: child, exists: true}
 		default:
 			parent.err = fmt.Errorf("Get %v: parent is not an object", i)
 		}
@@ -169,7 +172,11 @@ func (parent *Value) Get(i interface{}) *Value {
 		switch parent.Interface().(type) {
 		case []interface{}:
 			if i.(int) < len(parent.Interface().([]interface{})) {
-				return &Value{data: parent.Interface().([]interface{})[i.(int)]}
+				child := parent.Interface().([]interface{})[i.(int)]
+				if child == nil {
+					return &Value{data: nil, exists: false}
+				}
+				return &Value{data: child, exists: true}
 			}
 			return &Value{err: fmt.Errorf("Get %v: Index out of range", i)}
 		}
@@ -179,11 +186,20 @@ func (parent *Value) Get(i interface{}) *Value {
 
 func (parent *Value) GetAll() (map[string]*Value, error) {
 	switch parent.data.(type) {
-	case map[string]*Value:
+	case map[string]interface{}:
 	default:
 		return nil, fmt.Errorf("GetAll: value is not an object, type: %v", reflect.TypeOf(parent.data))
 	}
-	return parent.data.(map[string]*Value), nil
+
+	children := make(map[string]*Value, len(parent.data.(map[string]interface{})))
+	for key := range parent.data.(map[string]interface{}) {
+		child := parent.Get(key)
+		if child.err != nil {
+			return nil, child.err
+		}
+		children[key] = child
+	}
+	return children, nil
 }
 
 // Creates a new value from an io.reader.
