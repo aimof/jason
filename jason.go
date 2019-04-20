@@ -194,8 +194,8 @@ func (parent *Value) GetAll() (map[string]*Value, error) {
 	children := make(map[string]*Value, len(parent.data.(map[string]interface{})))
 	for key := range parent.data.(map[string]interface{}) {
 		child := parent.Get(key)
-		if child.err != nil {
-			return nil, child.err
+		if child.Err != nil {
+			return nil, child.Err
 		}
 		children[key] = child
 	}
